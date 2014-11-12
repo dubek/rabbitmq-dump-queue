@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" == "" ] ; then
+	echo "Usage: $0 VERSION"
+	exit 1
+fi
+
+VERSION=$1
+
+ROOT=$(dirname $(dirname $0))
+cd $ROOT
+
+for os in linux darwin windows ; do
+	for arch in 386 amd64 ; do
+		export GOOS=$os
+		export GOARCH=$arch
+
+		releasename="rabbitmq-dump-queue-$VERSION-$GOOS-$GOARCH"
+		releasedir="release/$releasename"
+
+		rm -rf bin
+		scripts/build
+
+		rm -rf $releasedir
+		mkdir -p $releasedir
+		mv bin/* $releasedir/
+		cp README.md $releasedir/
+		cp LICENSE $releasedir/
+
+		if [ "$os" == "linux" ] ; then
+			(cd release && tar czf $releasename.tgz $releasename)
+		else
+			(cd release && zip -qr $releasename.zip $releasename)
+		fi
+	done
+done

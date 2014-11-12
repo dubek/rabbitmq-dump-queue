@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+ROOT=$(dirname $(dirname $0))
+cd $ROOT
+FILENAME=rabbitmq-dump-queue
+EXT=""
+if [ "$GOOS" == "windows" ] ; then
+	EXT=".exe"
+fi
+go build -o bin/$FILENAME$EXT .
