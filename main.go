@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"io/ioutil"
+	"encoding/json"
 	"os"
 	"path"
 )
@@ -14,6 +15,7 @@ var (
 	queue       = flag.String("queue", "", "Ephemeral AMQP queue name")
 	maxMessages = flag.Uint("max-messages", 1000, "Maximum number of messages to dump")
 	outputDir   = flag.String("output-dir", ".", "Directory in which to save the dumped messages")
+	full  	    = flag.Bool("full", false, "Dump the message, its properties and headers")
 	verbose     = flag.Bool("verbose", false, "Print progress")
 )
 
@@ -27,8 +29,6 @@ func main() {
 }
 
 func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, outputDir string) error {
-	var err error
-
 	if queueName == "" {
 		return fmt.Errorf("Must supply queue name")
 	}
@@ -55,23 +55,89 @@ func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 			false, // autoAck
 		)
 		if err != nil {
-			return fmt.Errorf("Queue Get: %s", err)
+			return fmt.Errorf("Queue get: %s", err)
 		}
-		if ok {
-			SaveMessageToFile(msg.Body, outputDir, messagesReceived)
-		} else {
+
+		if !ok {
 			VerboseLog("No more messages in queue")
 			break
+		}
+
+		err = SaveMessageToFile(msg.Body, outputDir, messagesReceived)
+		if err != nil {
+			return fmt.Errorf("Save message: %s", err)
+		}
+
+		if *full {
+			err = SavePropsAndHeadersToFile(msg, outputDir, messagesReceived)
+			if err != nil {
+				return fmt.Errorf("Save props and headers: %s", err)
+			}
 		}
 	}
 
 	return nil
 }
 
-func SaveMessageToFile(body []byte, outputDir string, counter uint) {
+func SaveMessageToFile(body []byte, outputDir string, counter uint) error {
 	filePath := GenerateFilePath(outputDir, counter)
-	ioutil.WriteFile(filePath, body, 0644)
+	err := ioutil.WriteFile(filePath, body, 0644)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println(filePath)
+
+	return nil
+}
+
+func GetProperties(msg amqp.Delivery) map[string]interface{} {
+	props := map[string]interface{}{
+		"app_id": msg.AppId,
+		"content_encoding": msg.ContentEncoding,
+		"content_type": msg.ContentType,
+		"correlation_id": msg.CorrelationId,
+		"delivery_mode": msg.DeliveryMode,
+		"expiration": msg.Expiration,
+		"message_id": msg.MessageId,
+		"priority": msg.Priority,
+		"reply_to": msg.ReplyTo,
+		"type": msg.Type,
+		"user_id": msg.UserId,
+	}
+
+	if !msg.Timestamp.IsZero() {
+		props["timestamp"] = msg.Timestamp.String()
+	}
+
+	for k, v := range props {
+		if v == "" {
+			delete(props, k)
+		}
+	}
+
+	return props
+}
+
+func SavePropsAndHeadersToFile(msg amqp.Delivery, outputDir string, counter uint) error {
+	extras := make(map[string]interface{})
+	extras["properties"] = GetProperties(msg)
+	extras["headers"] = msg.Headers
+
+	data, err := json.MarshalIndent(extras, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	filePath := GenerateFilePath(outputDir, counter) + "-headers+properties.json"
+	err = ioutil.WriteFile(filePath, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(filePath)
+
+	return nil
 }
 
 func GenerateFilePath(outputDir string, counter uint) string {
