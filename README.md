@@ -6,7 +6,7 @@ Dump messages from a RabbitMQ queue to files, without affecting the queue.
 
 ### Download a release
 
-Precompiled binary pacakges can be found on the
+Precompiled binary packages can be found on the
 [releases](https://github.com/dubek/rabbitmq-dump-queue/releases) page.
 
 ### Compile from source
@@ -24,7 +24,7 @@ go get github.com/dubek/rabbitmq-dump-queue
 To dump the first 50 messages of queue `incoming_1` to `/tmp`:
 
 ```
-rabbitmq-dump-queue -url="amqp://user:password@rabbitmq.example.com:5672/" -queue=incoming_1 -max-messages=50 -output-dir=/tmp
+rabbitmq-dump-queue -uri="amqp://user:password@rabbitmq.example.com:5672/" -queue=incoming_1 -max-messages=50 -output-dir=/tmp
 ```
 
 This will create the files `/tmp/msg-0000`, `/tmp/msg-0001`, and so on.
