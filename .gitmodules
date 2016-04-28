@@ -1,0 +1,3 @@
+[submodule "vendor/github.com/streadway/amqp"]
+	path = vendor/github.com/streadway/amqp
+	url = https://github.com/streadway/amqp.git
