@@ -1,13 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/streadway/amqp"
 	"io/ioutil"
-	"encoding/json"
 	"os"
 	"path"
+
+	"github.com/streadway/amqp"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 	queue       = flag.String("queue", "", "Ephemeral AMQP queue name")
 	maxMessages = flag.Uint("max-messages", 1000, "Maximum number of messages to dump")
 	outputDir   = flag.String("output-dir", ".", "Directory in which to save the dumped messages")
-	full  	    = flag.Bool("full", false, "Dump the message, its properties and headers")
+	full        = flag.Bool("full", false, "Dump the message, its properties and headers")
 	verbose     = flag.Bool("verbose", false, "Print progress")
 )
 
@@ -93,17 +94,17 @@ func SaveMessageToFile(body []byte, outputDir string, counter uint) error {
 
 func GetProperties(msg amqp.Delivery) map[string]interface{} {
 	props := map[string]interface{}{
-		"app_id": msg.AppId,
+		"app_id":           msg.AppId,
 		"content_encoding": msg.ContentEncoding,
-		"content_type": msg.ContentType,
-		"correlation_id": msg.CorrelationId,
-		"delivery_mode": msg.DeliveryMode,
-		"expiration": msg.Expiration,
-		"message_id": msg.MessageId,
-		"priority": msg.Priority,
-		"reply_to": msg.ReplyTo,
-		"type": msg.Type,
-		"user_id": msg.UserId,
+		"content_type":     msg.ContentType,
+		"correlation_id":   msg.CorrelationId,
+		"delivery_mode":    msg.DeliveryMode,
+		"expiration":       msg.Expiration,
+		"message_id":       msg.MessageId,
+		"priority":         msg.Priority,
+		"reply_to":         msg.ReplyTo,
+		"type":             msg.Type,
+		"user_id":          msg.UserId,
 	}
 
 	if !msg.Timestamp.IsZero() {

@@ -18,6 +18,9 @@ rabbitmq-dump-queue from source by running:
 go get github.com/dubek/rabbitmq-dump-queue
 ```
 
+The `rabbitmq-dump-queue` executable will be created in the `$GOPATH/bin`
+directory.
+
 
 ## Usage
 
