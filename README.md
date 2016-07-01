@@ -26,9 +26,7 @@ directory.
 
 To dump the first 50 messages of queue `incoming_1` to `/tmp`:
 
-```
-rabbitmq-dump-queue -uri="amqp://user:password@rabbitmq.example.com:5672/" -queue=incoming_1 -max-messages=50 -output-dir=/tmp
-```
+    rabbitmq-dump-queue -uri="amqp://user:password@rabbitmq.example.com:5672/" -queue=incoming_1 -max-messages=50 -output-dir=/tmp
 
 This will create the files `/tmp/msg-0000`, `/tmp/msg-0001`, and so on.
 
@@ -36,6 +34,28 @@ The output filenames are printed one per line to the standard output; this
 allows piping the output of rabbitmq-dump-queue to `xargs` or similar utilities
 in order to perform further processing on each message (e.g. decompressing,
 decoding, etc.).
+
+To include the AMQP headers and properties in the output, add the `-full`
+option to the command-line.  This will create the following files:
+
+    /tmp/msg-0000
+    /tmp/msg-0000-headers+properties.json
+    /tmp/msg-0001
+    /tmp/msg-0001-headers+properties.json
+    ...
+
+The JSON files have the following structure:
+
+    {
+      "headers": {
+        "x-my-private-header": "my-value"
+      },
+      "properties": {
+        "correlation_id": "XYZ-9876",
+        "delivery_mode": 0,
+        "priority": 5
+      }
+    }
 
 Running `rabbitmq-dump-queue -help` will list the available command-line
 options.
