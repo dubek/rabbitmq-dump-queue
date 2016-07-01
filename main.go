@@ -13,7 +13,7 @@ import (
 
 var (
 	uri         = flag.String("uri", "amqp://guest:guest@localhost:5672/", "AMQP URI")
-	queue       = flag.String("queue", "", "Ephemeral AMQP queue name")
+	queue       = flag.String("queue", "", "AMQP queue name")
 	maxMessages = flag.Uint("max-messages", 1000, "Maximum number of messages to dump")
 	outputDir   = flag.String("output-dir", ".", "Directory in which to save the dumped messages")
 	full        = flag.Bool("full", false, "Dump the message, its properties and headers")
