@@ -1,5 +1,10 @@
 # Change log
 
+## (in progress)
+
+* Add system tests against a local RabbitMQ server.
+
+
 ## v0.2 (2016-07-01)
 
 * Add `-full` option to dump the message header and properties into

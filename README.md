@@ -81,6 +81,15 @@ Note that the same approach is used by RabbitMQ's management HTTP API (the
 `/api/queues/{vhost}/{queue}/get` endpoint with `requeue=true`).
 
 
+## Testing
+
+To run the automated tests, have a RabbitMQ server listen on 127.0.0.1:5672
+with user `guest` and password `guest`.  Then run:
+
+    go build .
+    go test -v .
+
+
 ## Contributing
 
 Github pull requests and issues are welcome.

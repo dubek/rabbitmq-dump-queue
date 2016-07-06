@@ -1,0 +1,13 @@
+sudo: required
+services:
+  - rabbitmq
+
+language: go
+go:
+  - 1.6.2
+  - tip
+
+install: true
+script:
+  - go build .
+  - go test -v .
