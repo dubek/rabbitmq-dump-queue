@@ -1,23 +1,26 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/streadway/amqp"
 )
 
 var (
-	uri         = flag.String("uri", "amqp://guest:guest@localhost:5672/", "AMQP URI")
-	queue       = flag.String("queue", "", "AMQP queue name")
-	maxMessages = flag.Uint("max-messages", 1000, "Maximum number of messages to dump")
-	outputDir   = flag.String("output-dir", ".", "Directory in which to save the dumped messages")
-	full        = flag.Bool("full", false, "Dump the message, its properties and headers")
-	verbose     = flag.Bool("verbose", false, "Print progress")
+	uri          = flag.String("uri", "amqp://guest:guest@localhost:5672/", "AMQP URI")
+	insecure_tls = flag.Bool("insecure-tls", false, "Insecure TLS mode: don't check certificates")
+	queue        = flag.String("queue", "", "AMQP queue name")
+	maxMessages  = flag.Uint("max-messages", 1000, "Maximum number of messages to dump")
+	outputDir    = flag.String("output-dir", ".", "Directory in which to save the dumped messages")
+	full         = flag.Bool("full", false, "Dump the message, its properties and headers")
+	verbose      = flag.Bool("verbose", false, "Print progress")
 )
 
 func main() {
@@ -29,13 +32,24 @@ func main() {
 	}
 }
 
+func dial(amqpURI string) (*amqp.Connection, error) {
+	VerboseLog(fmt.Sprintf("Dialing %q", amqpURI))
+	if *insecure_tls && strings.HasPrefix(amqpURI, "amqps://") {
+		tlsConfig := new(tls.Config)
+		tlsConfig.InsecureSkipVerify = true
+		conn, err := amqp.DialTLS(amqpURI, tlsConfig)
+		return conn, err
+	}
+	conn, err := amqp.Dial(amqpURI)
+	return conn, err
+}
+
 func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, outputDir string) error {
 	if queueName == "" {
 		return fmt.Errorf("Must supply queue name")
 	}
 
-	VerboseLog(fmt.Sprintf("Dialing %q", amqpURI))
-	conn, err := amqp.Dial(amqpURI)
+	conn, err := dial(amqpURI)
 	if err != nil {
 		return fmt.Errorf("Dial: %s", err)
 	}
