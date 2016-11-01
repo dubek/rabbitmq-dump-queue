@@ -3,6 +3,8 @@
 ## (in progress)
 
 * Add system tests against a local RabbitMQ server.
+* Add `-insecure-tls` option to skip verification of the RabbitMQ's TLS
+  certificates; as the name hints, this is NOT SECURE.
 
 
 ## v0.2 (2016-07-01)
