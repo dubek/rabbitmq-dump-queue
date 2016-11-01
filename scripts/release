@@ -2,7 +2,7 @@
 
 set -e
 
-if [ "$1" == "" ] ; then
+if [ -z "$1" ] ; then
 	echo "Usage: $0 VERSION"
 	echo "Example: $0 v0.2"
 	exit 1
@@ -30,7 +30,7 @@ for os in linux darwin windows ; do
 		cp README.md $releasedir/
 		cp LICENSE $releasedir/
 
-		if [ "$os" == "linux" ] ; then
+		if [ "$os" = "linux" ] ; then
 			(cd release && tar czf $releasename.tgz $releasename)
 		else
 			(cd release && zip -qr $releasename.zip $releasename)
