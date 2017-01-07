@@ -25,6 +25,11 @@ var (
 
 func main() {
 	flag.Parse()
+	if flag.NArg() > 0 {
+		fmt.Fprintf(os.Stderr, "Error: Unused command line arguments detected.\n")
+		flag.Usage();
+		os.Exit(2)
+	}
 	err := DumpMessagesFromQueue(*uri, *queue, *maxMessages, *outputDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
