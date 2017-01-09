@@ -1,5 +1,10 @@
 # Change log
 
+## Upcoming
+
+* Print an error when there are unused arguments on the command-line.
+
+
 ## v0.3 (2016-11-01)
 
 * Add system tests against a local RabbitMQ server.
