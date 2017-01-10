@@ -57,8 +57,16 @@ The JSON files have the following structure:
       }
     }
 
+
+By default, it will not acknowledge messages, so they will be requeued.
+Acknowledging messages using the `-ack=true` switch will *remove* them from the
+queue, allowing the user to process new messages (see implementation details).
+
+    rabbitmq-dump-queue -uri="amqp://user:password@rabbitmq.example.com:5672/" -queue=incoming_1 -max-messages=50 -output-dir=/tmp -ack=true
+
 Running `rabbitmq-dump-queue -help` will list the available command-line
 options.
+
 
 
 ## Message requeuing implementation details
