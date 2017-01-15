@@ -3,6 +3,9 @@
 ## Upcoming
 
 * Print an error when there are unused arguments on the command-line.
+* Add `-ack` option to acknowledge the received messages and therefore to
+  *remove* them from the queue - from
+  [@msteggink](https://github.com/msteggink).
 
 
 ## v0.3 (2016-11-01)
