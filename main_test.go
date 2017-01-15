@@ -122,6 +122,37 @@ func verifyFileContent(t *testing.T, filename, expectedContent string) {
 	}
 }
 
+func TestAcknowledge(t *testing.T) {
+	os.MkdirAll("tmp-test", 0775)
+	defer os.RemoveAll("tmp-test")
+	populateTestQueue(t, 10)
+	defer deleteTestQueue(t)
+	output, err := exec.Command("./rabbitmq-dump-queue", "-uri="+TEST_AMQP_URI, "-queue="+TEST_QUEUE_NAME, "-max-messages=3", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
+	if err != nil {
+		t.Fatalf("run: %s: %s", err, string(output))
+	}
+	expectedOutput := "tmp-test/msg-0000\n" +
+		"tmp-test/msg-0001\n" +
+		"tmp-test/msg-0002\n"
+	if string(output) != expectedOutput {
+		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput, output)
+	}
+	output2, err2 := exec.Command("./rabbitmq-dump-queue", "-uri="+TEST_AMQP_URI, "-queue="+TEST_QUEUE_NAME, "-max-messages=10", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
+	if err2 != nil {
+		t.Fatalf("run: %s: %s", err, string(output))
+	}
+	expectedOutput2 := "tmp-test/msg-0000\n" +
+		"tmp-test/msg-0001\n" +
+		"tmp-test/msg-0002\n" +
+		"tmp-test/msg-0003\n" +
+		"tmp-test/msg-0004\n" +
+		"tmp-test/msg-0005\n" +
+		"tmp-test/msg-0006\n"
+	if string(output2) != expectedOutput2 {
+		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput2, output2)
+	}
+}
+
 func TestNormal(t *testing.T) {
 	os.MkdirAll("tmp-test", 0775)
 	defer os.RemoveAll("tmp-test")

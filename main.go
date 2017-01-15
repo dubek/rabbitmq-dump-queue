@@ -17,6 +17,7 @@ var (
 	uri          = flag.String("uri", "amqp://guest:guest@localhost:5672/", "AMQP URI")
 	insecure_tls = flag.Bool("insecure-tls", false, "Insecure TLS mode: don't check certificates")
 	queue        = flag.String("queue", "", "AMQP queue name")
+	ack          = flag.Bool("ack", false, "Acknowledge messages")
 	maxMessages  = flag.Uint("max-messages", 1000, "Maximum number of messages to dump")
 	outputDir    = flag.String("output-dir", ".", "Directory in which to save the dumped messages")
 	full         = flag.Bool("full", false, "Dump the message, its properties and headers")
@@ -27,7 +28,7 @@ func main() {
 	flag.Parse()
 	if flag.NArg() > 0 {
 		fmt.Fprintf(os.Stderr, "Error: Unused command line arguments detected.\n")
-		flag.Usage();
+		flag.Usage()
 		os.Exit(2)
 	}
 	err := DumpMessagesFromQueue(*uri, *queue, *maxMessages, *outputDir)
@@ -72,7 +73,7 @@ func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 	VerboseLog(fmt.Sprintf("Pulling messages from queue %q", queueName))
 	for messagesReceived := uint(0); messagesReceived < maxMessages; messagesReceived++ {
 		msg, ok, err := channel.Get(queueName,
-			false, // autoAck
+			*ack, // autoAck
 		)
 		if err != nil {
 			return fmt.Errorf("Queue get: %s", err)
