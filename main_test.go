@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	TEST_AMQP_URI   = "amqp://guest:guest@127.0.0.1:5672/"
-	TEST_QUEUE_NAME = "test-rabbitmq-dump-queue"
+	testAmqpURI   = "amqp://guest:guest@127.0.0.1:5672/"
+	testQueueName = "test-rabbitmq-dump-queue"
 )
 
 func makeAmqpMessage(i int) amqp.Publishing {
@@ -31,7 +31,7 @@ func makeAmqpMessage(i int) amqp.Publishing {
 
 // Publish 10 messages to the queue
 func populateTestQueue(t *testing.T, messagesToPublish int) {
-	conn, err := amqp.Dial(TEST_AMQP_URI)
+	conn, err := amqp.Dial(testAmqpURI)
 	if err != nil {
 		t.Fatalf("Dial: %s", err)
 	}
@@ -42,18 +42,18 @@ func populateTestQueue(t *testing.T, messagesToPublish int) {
 		t.Fatalf("Channel: %s", err)
 	}
 
-	_, err = channel.QueueDeclare(TEST_QUEUE_NAME, true, false, false, false, nil)
+	_, err = channel.QueueDeclare(testQueueName, true, false, false, false, nil)
 	if err != nil {
 		t.Fatalf("QueueDeclare: %s", err)
 	}
 
-	_, err = channel.QueuePurge(TEST_QUEUE_NAME, false)
+	_, err = channel.QueuePurge(testQueueName, false)
 	if err != nil {
 		t.Fatalf("QueuePurge: %s", err)
 	}
 
 	for i := 0; i < messagesToPublish; i++ {
-		err = channel.Publish("", TEST_QUEUE_NAME, false, false, makeAmqpMessage(i))
+		err = channel.Publish("", testQueueName, false, false, makeAmqpMessage(i))
 		if err != nil {
 			t.Fatalf("Publish: %s", err)
 		}
@@ -61,7 +61,7 @@ func populateTestQueue(t *testing.T, messagesToPublish int) {
 }
 
 func deleteTestQueue(t *testing.T) {
-	conn, err := amqp.Dial(TEST_AMQP_URI)
+	conn, err := amqp.Dial(testAmqpURI)
 	if err != nil {
 		t.Fatalf("Dial: %s", err)
 	}
@@ -72,14 +72,14 @@ func deleteTestQueue(t *testing.T) {
 		t.Fatalf("Channel: %s", err)
 	}
 
-	_, err = channel.QueueDelete(TEST_QUEUE_NAME, false, false, false)
+	_, err = channel.QueueDelete(testQueueName, false, false, false)
 	if err != nil {
 		t.Fatalf("QueueDelete: %s", err)
 	}
 }
 
 func getTestQueueLength(t *testing.T) int {
-	conn, err := amqp.Dial(TEST_AMQP_URI)
+	conn, err := amqp.Dial(testAmqpURI)
 	if err != nil {
 		t.Fatalf("Dial: %s", err)
 	}
@@ -90,7 +90,7 @@ func getTestQueueLength(t *testing.T) int {
 		t.Fatalf("Channel: %s", err)
 	}
 
-	queue, err := channel.QueueInspect(TEST_QUEUE_NAME)
+	queue, err := channel.QueueInspect(testQueueName)
 	if err != nil {
 		t.Fatalf("QueueInspect: %s", err)
 	}
@@ -127,7 +127,7 @@ func TestAcknowledge(t *testing.T) {
 	defer os.RemoveAll("tmp-test")
 	populateTestQueue(t, 10)
 	defer deleteTestQueue(t)
-	output, err := exec.Command("./rabbitmq-dump-queue", "-uri="+TEST_AMQP_URI, "-queue="+TEST_QUEUE_NAME, "-max-messages=3", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
+	output, err := exec.Command("./rabbitmq-dump-queue", "-uri="+testAmqpURI, "-queue="+testQueueName, "-max-messages=3", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
 	if err != nil {
 		t.Fatalf("run: %s: %s", err, string(output))
 	}
@@ -137,7 +137,7 @@ func TestAcknowledge(t *testing.T) {
 	if string(output) != expectedOutput {
 		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput, output)
 	}
-	output2, err2 := exec.Command("./rabbitmq-dump-queue", "-uri="+TEST_AMQP_URI, "-queue="+TEST_QUEUE_NAME, "-max-messages=10", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
+	output2, err2 := exec.Command("./rabbitmq-dump-queue", "-uri="+testAmqpURI, "-queue="+testQueueName, "-max-messages=10", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
 	if err2 != nil {
 		t.Fatalf("run: %s: %s", err, string(output))
 	}
@@ -158,7 +158,7 @@ func TestNormal(t *testing.T) {
 	defer os.RemoveAll("tmp-test")
 	populateTestQueue(t, 10)
 	defer deleteTestQueue(t)
-	output := run(t, "-uri="+TEST_AMQP_URI+" -queue="+TEST_QUEUE_NAME+" -max-messages=3 -output-dir=tmp-test")
+	output := run(t, "-uri="+testAmqpURI+" -queue="+testQueueName+" -max-messages=3 -output-dir=tmp-test")
 	expectedOutput := "tmp-test/msg-0000\n" +
 		"tmp-test/msg-0001\n" +
 		"tmp-test/msg-0002\n"
@@ -179,7 +179,7 @@ func TestEmptyQueue(t *testing.T) {
 	defer os.RemoveAll("tmp-test")
 	populateTestQueue(t, 0)
 	defer deleteTestQueue(t)
-	output := run(t, "-uri="+TEST_AMQP_URI+" -queue="+TEST_QUEUE_NAME+" -max-messages=3 -output-dir=tmp-test")
+	output := run(t, "-uri="+testAmqpURI+" -queue="+testQueueName+" -max-messages=3 -output-dir=tmp-test")
 	expectedOutput := ""
 	if output != expectedOutput {
 		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput, output)
@@ -191,7 +191,7 @@ func TestMaxMessagesLargerThanQueueLength(t *testing.T) {
 	defer os.RemoveAll("tmp-test")
 	populateTestQueue(t, 3)
 	defer deleteTestQueue(t)
-	output := run(t, "-uri="+TEST_AMQP_URI+" -queue="+TEST_QUEUE_NAME+" -max-messages=9 -output-dir=tmp-test")
+	output := run(t, "-uri="+testAmqpURI+" -queue="+testQueueName+" -max-messages=9 -output-dir=tmp-test")
 	expectedOutput := "tmp-test/msg-0000\n" +
 		"tmp-test/msg-0001\n" +
 		"tmp-test/msg-0002\n"
@@ -205,7 +205,7 @@ func TestFull(t *testing.T) {
 	defer os.RemoveAll("tmp-test")
 	populateTestQueue(t, 10)
 	defer deleteTestQueue(t)
-	output := run(t, "-uri="+TEST_AMQP_URI+" -queue="+TEST_QUEUE_NAME+" -max-messages=3 -output-dir=tmp-test -full")
+	output := run(t, "-uri="+testAmqpURI+" -queue="+testQueueName+" -max-messages=3 -output-dir=tmp-test -full")
 	expectedOutput := "tmp-test/msg-0000\n" +
 		"tmp-test/msg-0000-headers+properties.json\n" +
 		"tmp-test/msg-0001\n" +
