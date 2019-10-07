@@ -6,6 +6,8 @@
 * Add `-ack` option to acknowledge the received messages and therefore to
   *remove* them from the queue - from
   [@msteggink](https://github.com/msteggink).
+* Use native Go modules (need Go 1.13) to handle dependencies instead of using
+  git submodules.
 
 
 ## v0.3 (2016-11-01)
