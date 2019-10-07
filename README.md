@@ -92,10 +92,20 @@ Note that the same approach is used by RabbitMQ's management HTTP API (the
 ## Testing
 
 To run the automated tests, have a RabbitMQ server listen on 127.0.0.1:5672
-with user `guest` and password `guest`.  Then run:
+with user `guest` and password `guest`.  This can be easily achieved with
+Docker:
+
+    docker run --name test-rabbitmq -d -p 5672:5672 rabbitmq:3-management
+
+Then run:
 
     go build .
     go test -v .
+
+To stop the RabbitMQ server container, run:
+
+    docker stop test-rabbitmq
+    docker rm test-rabbitmq
 
 
 ## Contributing
