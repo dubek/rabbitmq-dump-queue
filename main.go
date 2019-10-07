@@ -31,7 +31,7 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
-	err := DumpMessagesFromQueue(*uri, *queue, *maxMessages, *outputDir)
+	err := dumpMessagesFromQueue(*uri, *queue, *maxMessages, *outputDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
@@ -39,7 +39,7 @@ func main() {
 }
 
 func dial(amqpURI string) (*amqp.Connection, error) {
-	VerboseLog(fmt.Sprintf("Dialing %q", amqpURI))
+	verboseLog(fmt.Sprintf("Dialing %q", amqpURI))
 	if *insecureTLS && strings.HasPrefix(amqpURI, "amqps://") {
 		tlsConfig := new(tls.Config)
 		tlsConfig.InsecureSkipVerify = true
@@ -50,7 +50,7 @@ func dial(amqpURI string) (*amqp.Connection, error) {
 	return conn, err
 }
 
-func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, outputDir string) error {
+func dumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, outputDir string) error {
 	if queueName == "" {
 		return fmt.Errorf("Must supply queue name")
 	}
@@ -62,7 +62,7 @@ func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 
 	defer func() {
 		conn.Close()
-		VerboseLog("AMQP connection closed")
+		verboseLog("AMQP connection closed")
 	}()
 
 	channel, err := conn.Channel()
@@ -70,7 +70,7 @@ func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 		return fmt.Errorf("Channel: %s", err)
 	}
 
-	VerboseLog(fmt.Sprintf("Pulling messages from queue %q", queueName))
+	verboseLog(fmt.Sprintf("Pulling messages from queue %q", queueName))
 	for messagesReceived := uint(0); messagesReceived < maxMessages; messagesReceived++ {
 		msg, ok, err := channel.Get(queueName,
 			*ack, // autoAck
@@ -80,17 +80,17 @@ func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 		}
 
 		if !ok {
-			VerboseLog("No more messages in queue")
+			verboseLog("No more messages in queue")
 			break
 		}
 
-		err = SaveMessageToFile(msg.Body, outputDir, messagesReceived)
+		err = saveMessageToFile(msg.Body, outputDir, messagesReceived)
 		if err != nil {
 			return fmt.Errorf("Save message: %s", err)
 		}
 
 		if *full {
-			err = SavePropsAndHeadersToFile(msg, outputDir, messagesReceived)
+			err = savePropsAndHeadersToFile(msg, outputDir, messagesReceived)
 			if err != nil {
 				return fmt.Errorf("Save props and headers: %s", err)
 			}
@@ -100,8 +100,8 @@ func DumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 	return nil
 }
 
-func SaveMessageToFile(body []byte, outputDir string, counter uint) error {
-	filePath := GenerateFilePath(outputDir, counter)
+func saveMessageToFile(body []byte, outputDir string, counter uint) error {
+	filePath := generateFilePath(outputDir, counter)
 	err := ioutil.WriteFile(filePath, body, 0644)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func SaveMessageToFile(body []byte, outputDir string, counter uint) error {
 	return nil
 }
 
-func GetProperties(msg amqp.Delivery) map[string]interface{} {
+func getProperties(msg amqp.Delivery) map[string]interface{} {
 	props := map[string]interface{}{
 		"app_id":           msg.AppId,
 		"content_encoding": msg.ContentEncoding,
@@ -140,9 +140,9 @@ func GetProperties(msg amqp.Delivery) map[string]interface{} {
 	return props
 }
 
-func SavePropsAndHeadersToFile(msg amqp.Delivery, outputDir string, counter uint) error {
+func savePropsAndHeadersToFile(msg amqp.Delivery, outputDir string, counter uint) error {
 	extras := make(map[string]interface{})
-	extras["properties"] = GetProperties(msg)
+	extras["properties"] = getProperties(msg)
 	extras["headers"] = msg.Headers
 
 	data, err := json.MarshalIndent(extras, "", "  ")
@@ -150,7 +150,7 @@ func SavePropsAndHeadersToFile(msg amqp.Delivery, outputDir string, counter uint
 		return err
 	}
 
-	filePath := GenerateFilePath(outputDir, counter) + "-headers+properties.json"
+	filePath := generateFilePath(outputDir, counter) + "-headers+properties.json"
 	err = ioutil.WriteFile(filePath, data, 0644)
 	if err != nil {
 		return err
@@ -161,11 +161,11 @@ func SavePropsAndHeadersToFile(msg amqp.Delivery, outputDir string, counter uint
 	return nil
 }
 
-func GenerateFilePath(outputDir string, counter uint) string {
+func generateFilePath(outputDir string, counter uint) string {
 	return path.Join(outputDir, fmt.Sprintf("msg-%04d", counter))
 }
 
-func VerboseLog(msg string) {
+func verboseLog(msg string) {
 	if *verbose {
 		fmt.Println("*", msg)
 	}
