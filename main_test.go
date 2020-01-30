@@ -14,7 +14,9 @@ import (
 
 const (
 	testAmqpURI   = "amqp://guest:guest@127.0.0.1:5672/"
-	testQueueName = "test-rabbitmq-dump-queue"
+	testQueueName    = "test-rabbitmq-dump-queue"
+	testExchangeName = "test-rabbitmq-dump-exchange"
+	testRoutingKey   = "test-rabbitmq-dump-routing-key"
 )
 
 func makeAmqpMessage(i int) amqp.Publishing {
@@ -30,7 +32,7 @@ func makeAmqpMessage(i int) amqp.Publishing {
 }
 
 // Publish 10 messages to the queue
-func populateTestQueue(t *testing.T, messagesToPublish int) {
+func populateTestQueue(t *testing.T, messagesToPublish int, exchange ...string) {
 	conn, err := amqp.Dial(testAmqpURI)
 	if err != nil {
 		t.Fatalf("Dial: %s", err)
@@ -52,12 +54,71 @@ func populateTestQueue(t *testing.T, messagesToPublish int) {
 		t.Fatalf("QueuePurge: %s", err)
 	}
 
+	exchangeToPublish := ""
+	queueToPublish := testQueueName
+
+	if len(exchange) > 0 {
+		exchangeToPublish = exchange[0]
+		queueToPublish = testRoutingKey
+
+		err = channel.ExchangeDeclare(
+			exchangeToPublish, // name
+			"topic",           // type
+			true,              // durable
+			false,             // auto-deleted
+			false,             // internal
+			false,             // no-wait
+			nil,               // arguments
+		)
+
+		if err != nil {
+			t.Fatalf("Failed to declare exchange: %s", err)
+		}
+
+		err = channel.QueueBind(
+			testQueueName,    // queue name
+			testRoutingKey,   // routing key
+			testExchangeName, // exchange
+			false,
+			nil)
+	}
+
 	for i := 0; i < messagesToPublish; i++ {
-		err = channel.Publish("", testQueueName, false, false, makeAmqpMessage(i))
+		err = channel.Publish(exchangeToPublish, queueToPublish, false, false, makeAmqpMessage(i))
 		if err != nil {
 			t.Fatalf("Publish: %s", err)
 		}
 	}
+}
+
+func getMetadataFromFile(t *testing.T, headerFileToLoad string) (map[string]interface{}, map[string]interface{}) {
+	jsonContent, err := ioutil.ReadFile(headerFileToLoad)
+
+	if err != nil {
+		t.Fatalf("Error reading %s: %s", headerFileToLoad, err)
+	}
+
+	var v map[string]interface{}
+
+	err = json.Unmarshal(jsonContent, &v)
+
+	if err != nil {
+		t.Fatalf("Error unmarshaling JSON: %s", err)
+	}
+
+	headers, ok := v["headers"].(map[string]interface{})
+
+	if !ok {
+		t.Fatalf("Wrong data type for 'headers' in JSON")
+	}
+
+	properties, ok := v["properties"].(map[string]interface{})
+
+	if !ok {
+		t.Fatalf("Wrong data type for 'properties' in JSON")
+	}
+
+	return headers, properties
 }
 
 func deleteTestQueue(t *testing.T) {
@@ -112,6 +173,21 @@ func run(t *testing.T, commandLine string) string {
 	return string(output)
 }
 
+func verifyOutput(t *testing.T) {
+	output := run(t, "-uri="+testAmqpURI+" -queue="+testQueueName+" -max-messages=3 -output-dir=tmp-test -full")
+
+	expectedOutput := "tmp-test/msg-0000\n" +
+		"tmp-test/msg-0000-headers+properties.json\n" +
+		"tmp-test/msg-0001\n" +
+		"tmp-test/msg-0001-headers+properties.json\n" +
+		"tmp-test/msg-0002\n" +
+		"tmp-test/msg-0002-headers+properties.json\n"
+
+	if output != expectedOutput {
+		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput, output)
+	}
+}
+
 func verifyFileContent(t *testing.T, filename, expectedContent string) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -120,6 +196,22 @@ func verifyFileContent(t *testing.T, filename, expectedContent string) {
 	if expectedContent != string(content) {
 		t.Errorf("Wrong content for %s: expected '%s', got '%s'", filename, expectedContent, string(content))
 	}
+}
+
+func verifyAndGetDefaultMetadata(t *testing.T) (map[string]interface{}, map[string]interface{}) {
+	headers, properties := getMetadataFromFile(t, "tmp-test/msg-0000-headers+properties.json")
+
+	if properties["priority"] != 4.0 || // JSON numbers are floats
+		properties["content_type"] != "text/plain" ||
+		properties["message_id"] != "msgid-0" {
+		t.Errorf("Wrong property value: properties = %#v", properties)
+	}
+
+	if headers["my-header"] != "my-value-0" {
+		t.Errorf("Wrong header value: header = %#v", headers)
+	}
+
+	return headers, properties
 }
 
 func TestAcknowledge(t *testing.T) {
@@ -205,42 +297,27 @@ func TestFull(t *testing.T) {
 	defer os.RemoveAll("tmp-test")
 	populateTestQueue(t, 10)
 	defer deleteTestQueue(t)
-	output := run(t, "-uri="+testAmqpURI+" -queue="+testQueueName+" -max-messages=3 -output-dir=tmp-test -full")
-	expectedOutput := "tmp-test/msg-0000\n" +
-		"tmp-test/msg-0000-headers+properties.json\n" +
-		"tmp-test/msg-0001\n" +
-		"tmp-test/msg-0001-headers+properties.json\n" +
-		"tmp-test/msg-0002\n" +
-		"tmp-test/msg-0002-headers+properties.json\n"
-	if output != expectedOutput {
-		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput, output)
-	}
+
+	verifyOutput(t)
 	verifyFileContent(t, "tmp-test/msg-0000", "message-0-body")
-	jsonContent, err := ioutil.ReadFile("tmp-test/msg-0000-headers+properties.json")
-	if err != nil {
-		t.Fatalf("Error reading tmp-test/msg-0000-headers+properties.json: %s", err)
-	}
-	var v map[string]interface{}
-	err = json.Unmarshal(jsonContent, &v)
-	if err != nil {
-		t.Fatalf("Error unmarshaling JSON: %s", err)
-	}
 
-	headers, ok := v["headers"].(map[string]interface{})
-	if !ok {
-		t.Fatalf("Wrong data type for 'headers' in JSON")
-	}
-	if headers["my-header"] != "my-value-0" {
-		t.Errorf("Wrong value for my-header, got: %v", headers["my-header"])
-	}
+	verifyAndGetDefaultMetadata(t)
+}
 
-	properties, ok := v["properties"].(map[string]interface{})
-	if !ok {
-		t.Fatalf("Wrong data type for 'properties' in JSON")
-	}
-	if properties["priority"] != 4.0 || // JSON numbers are floats
-		properties["content_type"] != "text/plain" ||
-		properties["message_id"] != "msgid-0" {
+func TestFullRouted(t *testing.T) {
+	os.MkdirAll("tmp-test", 0775)
+	defer os.RemoveAll("tmp-test")
+	populateTestQueue(t, 10, testExchangeName)
+	defer deleteTestQueue(t)
+
+	verifyOutput(t)
+	verifyFileContent(t, "tmp-test/msg-0000", "message-0-body")
+
+	_, properties := verifyAndGetDefaultMetadata(t)
+
+	//Extended properties, only available when published through exchange
+	if properties["exchange"] != testExchangeName ||
+		properties["routing_key"] != testRoutingKey {
 		t.Errorf("Wrong property value: properties = %#v", properties)
 	}
 }
