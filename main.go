@@ -125,8 +125,8 @@ func getProperties(msg amqp.Delivery) map[string]interface{} {
 		"reply_to":         msg.ReplyTo,
 		"type":             msg.Type,
 		"user_id":          msg.UserId,
-		"exchange":			msg.Exchange,
-		"routing_key":		msg.RoutingKey,
+		"exchange":         msg.Exchange,
+		"routing_key":      msg.RoutingKey,
 	}
 
 	if !msg.Timestamp.IsZero() {

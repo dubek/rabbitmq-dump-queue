@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	testAmqpURI   = "amqp://guest:guest@127.0.0.1:5672/"
+	testAmqpURI      = "amqp://guest:guest@127.0.0.1:5872/"
 	testQueueName    = "test-rabbitmq-dump-queue"
 	testExchangeName = "test-rabbitmq-dump-exchange"
 	testRoutingKey   = "test-rabbitmq-dump-routing-key"
