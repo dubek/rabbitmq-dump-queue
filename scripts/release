@@ -21,6 +21,8 @@ for os in linux darwin windows ; do
 		releasename="rabbitmq-dump-queue-$VERSION-$GOOS-$GOARCH"
 		releasedir="release/$releasename"
 
+		echo "Building: $releasedir"
+
 		rm -rf bin
 		scripts/build
 
@@ -37,3 +39,7 @@ for os in linux darwin windows ; do
 		fi
 	done
 done
+
+echo "Done, see files in the 'release' directory."
+echo
+echo "Don't forget to tag:    git tag -a $VERSION -m 'Release $VERSION' && git push --tags"
