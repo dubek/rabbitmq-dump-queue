@@ -164,7 +164,7 @@ func savePropsAndHeadersToFile(msg amqp.Delivery, outputDir string, counter uint
 }
 
 func generateFilePath(outputDir string, counter uint) string {
-	return path.Join(outputDir, fmt.Sprintf("msg-%04d", counter))
+	return path.Join(outputDir, "msg")
 }
 
 func verboseLog(msg string) {
