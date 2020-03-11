@@ -102,7 +102,7 @@ func dumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 
 func saveMessageToFile(body []byte, outputDir string, counter uint) error {
 	filePath := generateFilePath(outputDir, counter)
-	file, err := os.OpenFile("msg",os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile("msg",os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
