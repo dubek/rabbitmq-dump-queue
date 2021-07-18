@@ -1,4 +1,4 @@
-name: Tests
+name: build-and-test
 
 on:
   push:
@@ -11,6 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Install RabbitMQ
+      run: sudo apt-get install -y rabbitmq-server
+
     - uses: actions/checkout@v2
 
     - name: Set up Go
