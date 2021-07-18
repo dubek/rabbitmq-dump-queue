@@ -2,7 +2,7 @@
 
 Dump messages from a RabbitMQ queue to files, without affecting the queue.
 
-[![Build Status](https://travis-ci.org/dubek/rabbitmq-dump-queue.svg?branch=master)](https://travis-ci.org/dubek/rabbitmq-dump-queue)
+[![build-and-test](https://github.com/dubek/rabbitmq-dump-queue/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/dubek/rabbitmq-dump-queue/actions/workflows/build-and-test.yml)
 
 ## Installation
 
