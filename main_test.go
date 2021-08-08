@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 const (
@@ -19,10 +19,10 @@ const (
 	testRoutingKey   = "test-rabbitmq-dump-routing-key"
 )
 
-func makeAmqpMessage(i int) amqp.Publishing {
-	headers := make(amqp.Table)
+func makeAmqpMessage(i int) amqp091.Publishing {
+	headers := make(amqp091.Table)
 	headers["my-header"] = fmt.Sprintf("my-value-%d", i)
-	return amqp.Publishing{
+	return amqp091.Publishing{
 		Headers:     headers,
 		ContentType: "text/plain",
 		Priority:    4,
@@ -33,7 +33,7 @@ func makeAmqpMessage(i int) amqp.Publishing {
 
 // Publish 10 messages to the queue
 func populateTestQueue(t *testing.T, messagesToPublish int, exchange ...string) {
-	conn, err := amqp.Dial(testAmqpURI)
+	conn, err := amqp091.Dial(testAmqpURI)
 	if err != nil {
 		t.Fatalf("Dial: %s", err)
 	}
@@ -122,7 +122,7 @@ func getMetadataFromFile(t *testing.T, headerFileToLoad string) (map[string]inte
 }
 
 func deleteTestQueue(t *testing.T) {
-	conn, err := amqp.Dial(testAmqpURI)
+	conn, err := amqp091.Dial(testAmqpURI)
 	if err != nil {
 		t.Fatalf("Dial: %s", err)
 	}
@@ -140,7 +140,7 @@ func deleteTestQueue(t *testing.T) {
 }
 
 func getTestQueueLength(t *testing.T) int {
-	conn, err := amqp.Dial(testAmqpURI)
+	conn, err := amqp091.Dial(testAmqpURI)
 	if err != nil {
 		t.Fatalf("Dial: %s", err)
 	}

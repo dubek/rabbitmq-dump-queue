@@ -10,7 +10,7 @@ import (
 	"path"
 	"strings"
 
-	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 var (
@@ -38,15 +38,15 @@ func main() {
 	}
 }
 
-func dial(amqpURI string) (*amqp.Connection, error) {
+func dial(amqpURI string) (*amqp091.Connection, error) {
 	verboseLog(fmt.Sprintf("Dialing %q", amqpURI))
 	if *insecureTLS && strings.HasPrefix(amqpURI, "amqps://") {
 		tlsConfig := new(tls.Config)
 		tlsConfig.InsecureSkipVerify = true
-		conn, err := amqp.DialTLS(amqpURI, tlsConfig)
+		conn, err := amqp091.DialTLS(amqpURI, tlsConfig)
 		return conn, err
 	}
-	conn, err := amqp.Dial(amqpURI)
+	conn, err := amqp091.Dial(amqpURI)
 	return conn, err
 }
 
@@ -112,7 +112,7 @@ func saveMessageToFile(body []byte, outputDir string, counter uint) error {
 	return nil
 }
 
-func getProperties(msg amqp.Delivery) map[string]interface{} {
+func getProperties(msg amqp091.Delivery) map[string]interface{} {
 	props := map[string]interface{}{
 		"app_id":           msg.AppId,
 		"content_encoding": msg.ContentEncoding,
@@ -142,7 +142,7 @@ func getProperties(msg amqp.Delivery) map[string]interface{} {
 	return props
 }
 
-func savePropsAndHeadersToFile(msg amqp.Delivery, outputDir string, counter uint) error {
+func savePropsAndHeadersToFile(msg amqp091.Delivery, outputDir string, counter uint) error {
 	extras := make(map[string]interface{})
 	extras["properties"] = getProperties(msg)
 	extras["headers"] = msg.Headers
