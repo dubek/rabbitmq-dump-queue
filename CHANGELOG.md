@@ -2,6 +2,7 @@
 
 ## Upcoming
 
+* Use the [official RabbitMQ Go client library](https://github.com/rabbitmq/amqp091-go).
 
 ## v0.5 (2020-02-09)
 
