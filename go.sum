@@ -1,2 +1,4 @@
 github.com/rabbitmq/amqp091-go v0.0.0-20210714180937-de74e8a7d0e0 h1:D5EMs8zL77qXFJ60vl7x5xRxtezkXsmr8mwypRk5Pe4=
 github.com/rabbitmq/amqp091-go v0.0.0-20210714180937-de74e8a7d0e0/go.mod h1:ogQDLSOACsLPsIq0NpbtiifNZi2YOz0VTJ0kHRghqbM=
+github.com/rabbitmq/amqp091-go v1.2.0 h1:1pHBxAsQh54R9eX/xo679fUEAfv3loMqi0pvRFOj2nk=
+github.com/rabbitmq/amqp091-go v1.2.0/go.mod h1:ogQDLSOACsLPsIq0NpbtiifNZi2YOz0VTJ0kHRghqbM=
