@@ -18,7 +18,7 @@ var (
 	insecureTLS = flag.Bool("insecure-tls", false, "Insecure TLS mode: don't check certificates")
 	queue       = flag.String("queue", "", "AMQP queue name")
 	ack         = flag.Bool("ack", false, "Acknowledge messages")
-	maxMessages = flag.Uint("max-messages", 1000, "Maximum number of messages to dump")
+	maxMessages = flag.Uint("max-messages", 1000, "Maximum number of messages to dump or 0 for unlimited")
 	outputDir   = flag.String("output-dir", ".", "Directory in which to save the dumped messages")
 	full        = flag.Bool("full", false, "Dump the message, its properties and headers")
 	verbose     = flag.Bool("verbose", false, "Print progress")
@@ -71,7 +71,7 @@ func dumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, o
 	}
 
 	verboseLog(fmt.Sprintf("Pulling messages from queue %q", queueName))
-	for messagesReceived := uint(0); messagesReceived < maxMessages; messagesReceived++ {
+	for messagesReceived := uint(0); maxMessages == 0 || messagesReceived < maxMessages; messagesReceived++ {
 		msg, ok, err := channel.Get(queueName,
 			*ack, // autoAck
 		)
