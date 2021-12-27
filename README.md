@@ -32,6 +32,14 @@ To dump the first 50 messages of queue `incoming_1` to `/tmp`:
 
 This will create the files `/tmp/msg-0000`, `/tmp/msg-0001`, and so on.
 
+If the queue is in a RabbitMQ vhost, you should add the vhost name to the end
+of the URI:
+
+    rabbitmq-dump-queue -uri="amqp://user:password@rabbitmq.example.com:5672/vhost-name" ...
+
+If the vhost name starts with `/` you'll need to specify it explicitly (double
+slash after the port number).
+
 The output filenames are printed one per line to the standard output; this
 allows piping the output of rabbitmq-dump-queue to `xargs` or similar utilities
 in order to perform further processing on each message (e.g. decompressing,
