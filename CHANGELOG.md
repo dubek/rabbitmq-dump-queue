@@ -2,6 +2,10 @@
 
 ## Upcoming
 
+* Allow `-max-messages=0` to dump all the messages from the queue - from
+  [@ReallyLiri](https://github.com/ReallyLiri)
+* Update the RabbitMQ library to v1.2.0.
+
 
 ## v0.6 (2021-08-08)
 
