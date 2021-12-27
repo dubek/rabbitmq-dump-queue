@@ -35,7 +35,13 @@ This will create the files `/tmp/msg-0000`, `/tmp/msg-0001`, and so on.
 The output filenames are printed one per line to the standard output; this
 allows piping the output of rabbitmq-dump-queue to `xargs` or similar utilities
 in order to perform further processing on each message (e.g. decompressing,
-decoding, etc.).
+decoding, etc.).  For example:
+
+    # Count the number of lines in each message
+    rabbitmq-dump-queue -output-dir=/some/dir | xargs wc -l
+
+    # Add messsages from the queue to a tar archive
+    rabbitmq-dump-queue -output-dir=/some/dir | tar -czf /some/archive.tgz --remove-files -T -
 
 To include the AMQP headers and properties in the output, add the `-full`
 option to the command-line.  This will create the following files:
