@@ -292,6 +292,20 @@ func TestMaxMessagesLargerThanQueueLength(t *testing.T) {
 	}
 }
 
+func TestMaxMessagesZeroShouldFetchUnlimitedMessages(t *testing.T) {
+	os.MkdirAll("tmp-test", 0775)
+	defer os.RemoveAll("tmp-test")
+	populateTestQueue(t, 3)
+	defer deleteTestQueue(t)
+	output := run(t, "-uri="+testAmqpURI+" -queue="+testQueueName+" -max-messages=0 -output-dir=tmp-test")
+	expectedOutput := "tmp-test/msg-0000\n" +
+		"tmp-test/msg-0001\n" +
+		"tmp-test/msg-0002\n"
+	if output != expectedOutput {
+		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput, output)
+	}
+}
+
 func TestFull(t *testing.T) {
 	os.MkdirAll("tmp-test", 0775)
 	defer os.RemoveAll("tmp-test")
