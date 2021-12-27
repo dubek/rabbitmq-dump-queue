@@ -37,9 +37,16 @@ for os in linux darwin windows ; do
 		else
 			(cd release && zip -qr $releasename.zip $releasename)
 		fi
+		rm -r release/$releasename
 	done
 done
 
-echo "Done, see files in the 'release' directory."
-echo
-echo "Don't forget to tag:    git tag -a $VERSION -m 'Release $VERSION' && git push --tags"
+cat <<EOF
+Done, see files in the 'release' directory.
+
+Now tag and create a Github release:
+
+git tag -a $VERSION -m 'Release $VERSION'
+git push --tags
+gh release create $VERSION  --title "$VERSION" release/*
+EOF
