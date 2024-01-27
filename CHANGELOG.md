@@ -2,6 +2,11 @@
 
 ## Upcoming
 
+## v0.7.1 (2024-01-26)
+
+* Update the RabbitMQ library to v1.9.0.
+* Release binaries for arm64.
+
 ## v0.7 (2021-12-27)
 
 * Allow `-max-messages=0` to dump all the messages from the queue - from
