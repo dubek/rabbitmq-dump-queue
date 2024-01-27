@@ -14,7 +14,7 @@ ROOT=$(dirname $(dirname $0))
 cd $ROOT
 
 for os in linux darwin windows ; do
-	for arch in amd64 ; do
+	for arch in amd64 arm64 ; do
 		export GOOS=$os
 		export GOARCH=$arch
 
