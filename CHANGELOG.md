@@ -2,8 +2,17 @@
 
 ## Upcoming
 
+## v0.7.2 (2025-03-11)
+
+* Update the RabbitMQ library to v1.10.0.
+* Modify main.go to return help when no queue is provided
+* Add Dockerfile and .dockerignore.
+* Add scripts to build_container, test and wait for dependant test
+
+
 ## v0.7.1 (2024-01-26)
 
+* Update Go to 1.24.
 * Update the RabbitMQ library to v1.9.0.
 * Release binaries for arm64.
 

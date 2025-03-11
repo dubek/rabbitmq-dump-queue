@@ -1,0 +1,21 @@
+#!/bin/bash
+
+DIRNAME="$(dirname "$(readlink -f "$0")")"
+
+trap rm_containters EXIT
+
+rm_containters() {
+    docker kill rabbitmq >/dev/null 2>&1
+    docker kill rabbitmq-dump-queue-test >/dev/null 2>&1
+}
+
+# build docker image
+docker buildx build -t rabbitmq-dump-queue:test --target test .
+
+# prepare rabbitmq test container
+docker run -d --name rabbitmq --network=host --rm rabbitmq:4-management
+# wait for it
+"${DIRNAME}/wait-for-it.sh" -h localhost -p 5672 -t 20
+
+# run tests from within test container
+docker run -it --name rabbitmq-dump-queue-test --network=host --rm rabbitmq-dump-queue:test

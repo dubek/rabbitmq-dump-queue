@@ -162,7 +162,7 @@ func getTestQueueLength(t *testing.T) int {
 func run(t *testing.T, commandLine string) string {
 	queueLengthBeforeDump := getTestQueueLength(t)
 	args := strings.Split(commandLine, " ")
-	output, err := exec.Command("./rabbitmq-dump-queue", args...).CombinedOutput()
+	output, err := exec.Command("bin/rabbitmq-dump-queue", args...).CombinedOutput()
 	if err != nil {
 		t.Fatalf("run: %s: %s", err, string(output))
 	}
@@ -219,7 +219,7 @@ func TestAcknowledge(t *testing.T) {
 	defer os.RemoveAll("tmp-test")
 	populateTestQueue(t, 10)
 	defer deleteTestQueue(t)
-	output, err := exec.Command("./rabbitmq-dump-queue", "-uri="+testAmqpURI, "-queue="+testQueueName, "-max-messages=3", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
+	output, err := exec.Command("bin/rabbitmq-dump-queue", "-uri="+testAmqpURI, "-queue="+testQueueName, "-max-messages=3", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
 	if err != nil {
 		t.Fatalf("run: %s: %s", err, string(output))
 	}
@@ -229,7 +229,7 @@ func TestAcknowledge(t *testing.T) {
 	if string(output) != expectedOutput {
 		t.Errorf("Wrong output: expected '%s' but got '%s'", expectedOutput, output)
 	}
-	output2, err2 := exec.Command("./rabbitmq-dump-queue", "-uri="+testAmqpURI, "-queue="+testQueueName, "-max-messages=10", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
+	output2, err2 := exec.Command("bin/rabbitmq-dump-queue", "-uri="+testAmqpURI, "-queue="+testQueueName, "-max-messages=10", "-output-dir=tmp-test", "-ack=true").CombinedOutput()
 	if err2 != nil {
 		t.Fatalf("run: %s: %s", err, string(output))
 	}
