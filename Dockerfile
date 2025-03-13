@@ -7,7 +7,7 @@ COPY go* main* .
 RUN apk add --no-cache git
 RUN adduser -u ${UID} -D -h /app -H scratchuser
 
-RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' -o bin/rabbitmq-dump-queue .
+RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' -o rabbitmq-dump-queue .
 
 
 # test stage
@@ -28,7 +28,7 @@ COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 USER scratchuser
 
 # copy app binary
-COPY --from=build /go/bin/rabbitmq-dump-queue /usr/local/bin/
+COPY --from=build /go/rabbitmq-dump-queue /usr/local/bin/
 
 ENTRYPOINT [ "rabbitmq-dump-queue" ]
 
