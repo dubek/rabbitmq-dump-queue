@@ -1,5 +1,4 @@
 # rabbitmq-dump-queue
-![Version: 0.7.2](https://img.shields.io/badge/Version-0.7.2-informational?style=plastic)
 Dump messages from a RabbitMQ queue to files, without affecting the queue.
 
 [![build-and-test](https://github.com/dubek/rabbitmq-dump-queue/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/dubek/rabbitmq-dump-queue/actions/workflows/build-and-test.yml)
