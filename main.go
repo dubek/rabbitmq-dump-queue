@@ -52,9 +52,9 @@ func dial(amqpURI string) (*amqp091.Connection, error) {
 
 func dumpMessagesFromQueue(amqpURI string, queueName string, maxMessages uint, outputDir string) error {
 	if queueName == "" {
-    error := fmt.Errorf("Must supply queue name")
-    flag.Usage()
-    return error
+		error := fmt.Errorf("Must supply queue name")
+		flag.Usage()
+		return error
 	}
 
 	conn, err := dial(amqpURI)
