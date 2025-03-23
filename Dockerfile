@@ -1,11 +1,11 @@
+ARG BASE_IMAGE=gcr.io/distroless/static
+
 # build stage
 FROM golang:alpine AS build
-ARG UID=1000
 
 COPY go* main* .
 
 RUN apk add --no-cache git
-RUN adduser -u ${UID} -D -h /app -H scratchuser
 
 RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' -o rabbitmq-dump-queue .
 
@@ -18,14 +18,14 @@ ENTRYPOINT [ "go", "test" ]
 
 
 # production stage
-FROM scratch AS production
+FROM ${BASE_IMAGE} AS production
+ARG UID=65532
+ARG GID=65532
 
-# copy root-less user
-COPY --from=build /etc/passwd /etc/passwd
 # make latest alpine certs available
 COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-USER scratchuser
+USER ${UID}:${GID}
 
 # copy app binary
 COPY --from=build /go/rabbitmq-dump-queue /usr/local/bin/

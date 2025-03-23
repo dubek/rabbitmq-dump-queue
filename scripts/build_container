@@ -4,10 +4,11 @@ set -e -o pipefail
 
 usage() {
     cat << USAGE >&2
-Usage: $(basename "$0") [OPTIONS]
+Usage: $0 [OPTIONS]
 
 Options:
   -b, --builder <builder>  Specify the builder (docker or kaniko).
+  -e, --extra-args <arg=value>  Specify additional build-args.
   -t, --target <target>    Specify the target (build, test, debug or production).
                            Default: production.
   -g, --tag <tag>          Specify the tag.
@@ -16,8 +17,9 @@ Options:
   -h, --help               Display this help message.
 
 Examples:
-  $(basename "$0") -b docker -t my-image --tag latest
-  $(basename "$0") --builder kaniko --target debug
+  $0 -b docker -t test --tag latest
+  $0 --builder kaniko --target debug
+  $0 -g local -e UID=\$UID -e GID=\$GID -e BASE_IMAGE=scratch
 
 USAGE
     exit 1
@@ -30,16 +32,18 @@ main() {
 }
 
 build_with_docker() {
-    "${DRY_RUN}" docker buildx build \
+    ${DRY_RUN} docker buildx build \
              -t "${IMAGE_NAME}:${TAG}" \
+             "${BUILD_ARGS[@]}" \
              --target="${TARGET}" .
 }
 
 build_with_kaniko() {
     KANIKO_IMG="gcr.io/kaniko-project/executor:latest"
-    "${DRY_RUN}" docker run -w /build \
+    ${DRY_RUN} docker run -w /build \
                -v "$PWD":/build \
                --rm \
+               "${BUILD_ARGS[@]}" \
                "${KANIKO_IMG}" \
                -d "${IMAGE_NAME}:${TAG}" \
                --target "${TARGET}" \
@@ -54,6 +58,7 @@ parse_args() {
         opt="$1"; shift
         case $opt in
             --builder|-b) BUILDER="$1"; shift; ;;
+            --extra-args|-e) BUILD_ARGS+=( --build-arg "$1" ); shift; ;;
             --target|-t) TARGET="$1"; shift; ;;
             --tag|-g) TAG="$1"; shift; ;;
             --help|-h) usage; ;;
