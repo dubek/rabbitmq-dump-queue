@@ -1,0 +1,21 @@
+name: build_container
+
+on:
+  push:
+    ignore_branches: [ no_test ]
+  pull_request:
+    ignore_branches: [ no_test ]
+
+jobs:
+
+  build_container:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run build_container to generate scratch image
+      run: scripts/build_container -g scratch -e BASE_IMAGE=scratch
+
+    - name: Run test script
+      run: scripts/test
