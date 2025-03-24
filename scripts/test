@@ -1,21 +1,34 @@
 #!/bin/bash
 
+set -e
+
 DIRNAME="$(dirname "$(readlink -f "$0")")"
 
 trap rm_containters EXIT
 
 rm_containters() {
-    docker kill rabbitmq >/dev/null 2>&1
-    docker kill rabbitmq-dump-queue-test >/dev/null 2>&1
+    docker kill rdq-rabbitmq >/dev/null 2>&1
+    docker kill rdq-busybox >/dev/null 2>&1
+    docker kill rdq-test >/dev/null 2>&1
 }
 
 # build docker image
-docker buildx build -t rabbitmq-dump-queue:test --target test .
+"${DIRNAME}/build_container" --target test \
+           >/dev/null 2>&1
 
-# prepare rabbitmq test container
-docker run -d --name rabbitmq --network=host --rm rabbitmq:4-management
-# wait for it
-"${DIRNAME}/wait-for-it.sh" -h localhost -p 5672 -t 20
+echo -e "[\033[34mINFO\033[0m] Start rabbitmq container"
+docker run --network=host --rm -q \
+           --detach \
+           --name rdq-rabbitmq \
+           rabbitmq:4-management >/dev/null
 
-# run tests from within test container
-docker run -it --name rabbitmq-dump-queue-test --network=host --rm rabbitmq-dump-queue:test
+echo -e "[\033[34mINFO\033[0m] Wait for rabbitmq listener"
+docker run --network=host --rm -q \
+           --name rdq-busybox \
+           busybox \
+           sh -c 'nc -w 20 -z localhost 5672 >/dev/null'
+
+echo -e "[\033[34mINFO\033[0m] Run tests"
+docker run --network=host --rm \
+           --name rdq-test\
+           rabbitmq-dump-queue:test
