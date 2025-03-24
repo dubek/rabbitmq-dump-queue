@@ -7,7 +7,7 @@ COPY go* main* .
 
 RUN apk add --no-cache git
 
-RUN CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' -o rabbitmq-dump-queue .
+RUN CGO_ENABLED=0 go build -o rabbitmq-dump-queue .
 
 
 # test stage
