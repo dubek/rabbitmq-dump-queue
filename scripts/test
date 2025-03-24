@@ -4,31 +4,41 @@ set -e
 
 DIRNAME="$(dirname "$(readlink -f "$0")")"
 
+: "${RABBITMQ_START_TIMEOUT:=30}"
+
 trap rm_containters EXIT
+trap errors_found ERR
+
+info_msg() { printf "[\033[34mINFO\033[0m] %b\n" "$*"; }
+error_msg() { printf "[\033[31mERROR\033[0m] %b\n" "$*"; }
 
 rm_containters() {
-    docker kill rdq-rabbitmq >/dev/null 2>&1
-    docker kill rdq-busybox >/dev/null 2>&1
-    docker kill rdq-test >/dev/null 2>&1
+    docker kill rdq-test >/dev/null 2>&1 || true
+    docker kill rdq-busybox >/dev/null 2>&1 || true
+    docker kill rdq-rabbitmq >/dev/null 2>&1 || true
 }
 
-# build docker image
-"${DIRNAME}/build_container" --target test \
-           >/dev/null 2>&1
+errors_found() {
+    error_msg "$0 didn't finish correctly: rc [\033[31m$?\033[0m]"
+}
 
-echo -e "[\033[34mINFO\033[0m] Start rabbitmq container"
+info_msg "Build rabbitmq-dump-queue test image"
+"${DIRNAME}/build_container" --target test >/dev/null 2>&1
+
+info_msg "Start rabbitmq container"
 docker run --network=host --rm -q \
            --detach \
            --name rdq-rabbitmq \
            rabbitmq:4-management >/dev/null
 
-echo -e "[\033[34mINFO\033[0m] Wait for rabbitmq listener"
+info_msg "Wait for rabbitmq listener up to [\033[32m${RABBITMQ_START_TIMEOUT}s\033[0m]"
 docker run --network=host --rm -q \
            --name rdq-busybox \
+           -e N="$RABBITMQ_START_TIMEOUT" \
            busybox \
-           sh -c 'nc -w 20 -z localhost 5672 >/dev/null'
+           sh -c 'while [ $N -ge 0 ]; do nc -z localhost 5672 >/dev/null && exit 0; sleep 1; N=$((N - 1)); done; exit 1'
 
-echo -e "[\033[34mINFO\033[0m] Run tests"
+info_msg "Run tests"
 docker run --network=host --rm \
            --name rdq-test\
            rabbitmq-dump-queue:test

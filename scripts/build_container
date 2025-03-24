@@ -43,8 +43,8 @@ build_with_kaniko() {
     ${DRY_RUN} docker run -w /build \
                -v "$PWD":/build \
                --rm \
-               "${BUILD_ARGS[@]}" \
                "${KANIKO_IMG}" \
+               "${BUILD_ARGS[@]}" \
                -d "${IMAGE_NAME}:${TAG}" \
                --target "${TARGET}" \
                --context . \
