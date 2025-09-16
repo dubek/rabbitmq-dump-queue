@@ -1,0 +1,90 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+usage() {
+    cat << USAGE >&2
+Usage: $0 [OPTIONS]
+
+Options:
+  -b, --builder <builder>  Specify the builder (docker or kaniko).
+  -e, --extra-args <arg=value>  Specify additional build-args.
+  -t, --target <target>    Specify the target (build, test, debug or production).
+                           Default: production.
+  -g, --tag <tag>          Specify the tag.
+                           Default: latest for production target or <target>.
+  -p, --dry-run            Print only mode.
+  -h, --help               Display this help message.
+
+Examples:
+  $0 -b docker -t test --tag latest
+  $0 --builder kaniko --target debug
+  $0 -g local -e UID=\$UID -e GID=\$GID -e BASE_IMAGE=scratch
+
+USAGE
+    exit 1
+}
+
+main() {
+    parse_args "$@"
+    set_default
+    build_image
+}
+
+build_with_docker() {
+    ${DRY_RUN} docker buildx build \
+             -t "${IMAGE_NAME}:${TAG}" \
+             "${BUILD_ARGS[@]}" \
+             --target="${TARGET}" .
+}
+
+build_with_kaniko() {
+    KANIKO_IMG="gcr.io/kaniko-project/executor:latest"
+    ${DRY_RUN} docker run -w /build \
+               -v "$PWD":/build \
+               --rm \
+               "${KANIKO_IMG}" \
+               "${BUILD_ARGS[@]}" \
+               -d "${IMAGE_NAME}:${TAG}" \
+               --target "${TARGET}" \
+               --context . \
+               --no-push \
+               --tar-path=/build/image.tar
+}
+
+parse_args() {
+    set -- "$@" "${EOL:=$(printf '\1\3\3\7')}"  # end-of-list marker
+    while [ "$1" != "$EOL" ]; do
+        opt="$1"; shift
+        case $opt in
+            --builder|-b) BUILDER="$1"; shift; ;;
+            --extra-args|-e) BUILD_ARGS+=( --build-arg "$1" ); shift; ;;
+            --target|-t) TARGET="$1"; shift; ;;
+            --tag|-g) TAG="$1"; shift; ;;
+            --help|-h) usage; ;;
+            --dry-run|-p) DRY_RUN='echo'; ;;
+            *) printf "[ERROR] Unknwon arg [%s]\n" "$opt" >&2; usage; ;;
+        esac
+    done; shift
+}
+
+set_default() {
+    : "${BUILDER:="docker"}"
+    : "${TARGET:="production"}"
+    : "${IMAGE_NAME:="rabbitmq-dump-queue"}"
+    case "$TARGET" in
+      production) DEFAULT_TAG="latest"; ;;
+      *) DEFAULT_TAG="${TARGET}"
+    esac
+    : "${TAG:="$DEFAULT_TAG"}"
+}
+
+build_image() {
+    case $BUILDER in
+        kaniko) build_with_kaniko; ;;
+        docker) build_with_docker; ;;
+        *) echo "[ERROR] Unsupported builder [${BUILDER}]"
+    esac
+}
+
+main "$@"

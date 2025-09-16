@@ -1,5 +1,4 @@
 # rabbitmq-dump-queue
-
 Dump messages from a RabbitMQ queue to files, without affecting the queue.
 
 [![build-and-test](https://github.com/dubek/rabbitmq-dump-queue/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/dubek/rabbitmq-dump-queue/actions/workflows/build-and-test.yml)
@@ -17,12 +16,34 @@ If you have [Go](https://golang.org/doc/install) installed, you can install
 rabbitmq-dump-queue from source by running:
 
 ```
-go get github.com/dubek/rabbitmq-dump-queue
+go install github.com/dubek/rabbitmq-dump-queue
 ```
 
 The `rabbitmq-dump-queue` executable will be created in the `$GOPATH/bin`
 directory.
 
+### Compile in docker
+
+If you want to use the application within a root-less container use `scripts/build_container`
+
+``` bash
+$ scripts/build_container -h
+Usage: build_container [OPTIONS]
+
+Options:
+  -b, --builder <builder>  Specify the builder (docker or kaniko).
+  -t, --target <target>    Specify the target (build, test, debug or production).
+                           Default: production.
+  -g, --tag <tag>          Specify the tag.
+                           Default: latest for production target or <target>.
+  -p, --dry-run            Print only mode.
+  -h, --help               Display this help message.
+
+Examples:
+  build_container -b docker -t my-image --tag latest
+  build_container --builder kaniko --target debug
+
+```
 
 ## Usage
 
@@ -123,6 +144,9 @@ To stop the RabbitMQ server container, run:
     docker stop test-rabbitmq
     docker rm test-rabbitmq
 
+Testing with `docker` can simpify the task, simply run:
+
+    bash scripts/test
 
 ## Contributing
 

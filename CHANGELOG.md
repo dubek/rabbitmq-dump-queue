@@ -2,6 +2,15 @@
 
 ## Upcoming
 
+## v0.7.2 (2025-03-11)
+
+* Update the RabbitMQ library to v1.10.0.
+* Update Go to 1.24.
+* Modify main.go to return help when no queue is provided
+* Add Dockerfile and .dockerignore [@drodbar](https://github.com/drodbar).
+* Add build_container and test scripts [@drodbar](https://github.com/drodbar).
+
+
 ## v0.7.1 (2024-01-26)
 
 * Update the RabbitMQ library to v1.9.0.
