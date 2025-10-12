@@ -6,6 +6,8 @@ on:
   pull_request:
     ignore_branches: [ no_test ]
 
+permissions: {}
+
 jobs:
 
   build_container_scratch:
@@ -13,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Run build_container to generate scratch image
       run: scripts/build_container -g scratch -e BASE_IMAGE=scratch
@@ -22,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Run build_container to generate and image using kaniko
       run: scripts/build_container --tag kaniko --builder kaniko -t debug -e UID=1234 -e GID=5678
@@ -37,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Run scripts/test
       run: scripts/test
