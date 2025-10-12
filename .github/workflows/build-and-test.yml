@@ -6,6 +6,8 @@ on:
   pull_request:
     ignore_branches: [ no_test ]
 
+permissions: {}
+
 jobs:
 
   build:
@@ -19,6 +21,8 @@ jobs:
       run: sudo apt-get install -y rabbitmq-server
 
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Set up Go
       uses: actions/setup-go@v5
