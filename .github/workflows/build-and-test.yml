@@ -11,7 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        go-version: [ '1.21', '1.24' ]
+        go-version: [ stable, oldstable ]
 
     runs-on: ubuntu-latest
     steps:
@@ -24,6 +24,9 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
+
+    - name: Go version
+      run: go version
 
     - name: Build
       run: go build -v ./...
