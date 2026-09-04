@@ -2,6 +2,11 @@
 
 ## Upcoming
 
+## v0.7.3 (2026-09-04)
+
+* Update the RabbitMQ library to v1.13.0.
+
+
 ## v0.7.2 (2025-09-16)
 
 * Update the RabbitMQ library to v1.10.0 - from [@drodbar](https://github.com/drodbar).
